@@ -60,7 +60,7 @@ Find your assigned role below. You must respect your "Integration Contract"—th
 ```bash
 # Clone the repo
 git clone <repo-url>
-cd i2i-anon
+cd I2I2I
 
 # Checkout your assigned branch
 git checkout feature/<your-domain>
