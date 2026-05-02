@@ -1,7 +1,7 @@
-# I2I-Anon (Version 2.0)
+# I2I2I (Version 2.0)
 **Anonymous Communication System | 3-Hop Onion Routing + Mix-Network**
 
-Welcome to the v2.0 rebuild of I2I-Anon. We are moving from a legacy synchronous proof-of-concept to a fully asynchronous, byte-perfect, Dockerized mix-network. 
+Welcome to the v2.0 rebuild of I2I2I. We are moving from a legacy synchronous proof-of-concept to a fully asynchronous, byte-perfect, Dockerized mix-network. 
 
 Because of the extreme cryptographic and threading constraints in this architecture, we are strictly dividing the workload into three isolated domains. 
 
