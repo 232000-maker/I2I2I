@@ -1,0 +1,88 @@
+version: "3.8"
+
+networks:
+  i2i-mesh:
+    driver: bridge
+
+services:
+  directory:
+    build:
+      context: .
+      dockerfile: Dockerfile.headless
+    container_name: directory
+    environment:
+      - I2I_IN_DOCKER=true
+      - ROLE=directory
+    networks:
+      - i2i-mesh
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+
+  relay-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.headless
+    container_name: relay-1
+    environment:
+      - I2I_IN_DOCKER=true
+      - ROLE=relay
+      - DIRECTORY_URL=http://directory:5001
+      - RELAY_IP=relay-1
+      - RELAY_PORT=9001
+    networks:
+      - i2i-mesh
+    restart: unless-stopped
+    depends_on:
+      - directory
+
+  relay-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.headless
+    container_name: relay-2
+    environment:
+      - I2I_IN_DOCKER=true
+      - ROLE=relay
+      - DIRECTORY_URL=http://directory:5001
+      - RELAY_IP=relay-2
+      - RELAY_PORT=9001
+    networks:
+      - i2i-mesh
+    restart: unless-stopped
+    depends_on:
+      - directory
+
+  relay-3:
+    build:
+      context: .
+      dockerfile: Dockerfile.headless
+    container_name: relay-3
+    environment:
+      - I2I_IN_DOCKER=true
+      - ROLE=relay
+      - DIRECTORY_URL=http://directory:5001
+      - RELAY_IP=relay-3
+      - RELAY_PORT=9001
+    networks:
+      - i2i-mesh
+    restart: unless-stopped
+    depends_on:
+      - directory
+
+  relay-4:
+    build:
+      context: .
+      dockerfile: Dockerfile.headless
+    container_name: relay-4
+    environment:
+      - I2I_IN_DOCKER=true
+      - ROLE=relay
+      - DIRECTORY_URL=http://directory:5001
+      - RELAY_IP=relay-4
+      - RELAY_PORT=9001
+    networks:
+      - i2i-mesh
+    restart: unless-stopped
+    depends_on:
+      - directory
