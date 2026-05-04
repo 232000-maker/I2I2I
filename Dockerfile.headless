@@ -9,10 +9,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy shared source code directory (required for onion_crypto, constants, etc.)
+COPY src/ ./src/
+
 # Copy network domain source code
 COPY directory_api.py .
 COPY relay_node.py .
 
 # Entrypoint script will run either the directory or relay based on the ROLE env var
-# We'll handle this in a simple script or directly via CMD with bash
 CMD if [ "$ROLE" = "directory" ]; then python directory_api.py; else python relay_node.py; fi

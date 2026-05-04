@@ -1,21 +1,31 @@
-FROM python:3.10-slim
+FROM python:3.10-slim-bookworm
 
-# Install GUI dependencies
-RUN apt-get update && apt-get install -y \
-    python3-tk \
-    xvfb \
+ARG PUID=1000
+ARG PGID=1000
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    xvfb fluxbox x11vnc novnc websockify tini python3-tk libtk8.6 \
+    gosu \
     && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd -g ${PGID} i2igroup && \
+    useradd -u ${PUID} -g i2igroup -m -s /bin/bash i2iuser
 
 WORKDIR /app
 
-# Copy code
-COPY . /app
-
-# Install Python dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port
-EXPOSE 7000
+COPY src/ ./src/
+COPY gui/ ./gui/
+COPY main.py .
+COPY entrypoint.sh .
+RUN chmod +x /app/entrypoint.sh
 
-# Run client
-CMD ["xvfb-run", "python", "main.py"]
+EXPOSE 6080
+
+ENTRYPOINT ["/usr/bin/tini", "--", "/app/entrypoint.sh"]

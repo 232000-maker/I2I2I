@@ -6,7 +6,9 @@ from nacl.signing import VerifyKey
 from nacl.exceptions import BadSignatureError
 import nacl.encoding
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
@@ -21,21 +23,27 @@ EXPIRY_SECONDS = 60
 RATE_LIMIT_SECONDS = 5
 MAX_JITTER_SECONDS = 10
 
+
 def purge_expired():
     now = time.time()
-    expired_relays = [k for k, v in relays.items() if now - v["last_seen"] > EXPIRY_SECONDS]
+    expired_relays = [k for k, v in relays.items() if now - v["last_seen"] > 7600]
     for k in expired_relays:
         del relays[k]
-        
-    expired_leasesets = [k for k, v in leasesets.items() if now - v["last_seen"] > EXPIRY_SECONDS]
+
+    expired_leasesets = [k for k, v in leasesets.items() if now - v["last_seen"] > 7600]
     for k in expired_leasesets:
         del leasesets[k]
+
 
 def verify_payload(payload):
     """
     Validates timestamp jitter, rate limiting, and ed25519 signature.
     """
-    if "timestamp" not in payload or "signature" not in payload or "ed25519_pubkey" not in payload:
+    if (
+        "timestamp" not in payload
+        or "signature" not in payload
+        or "ed25519_pubkey" not in payload
+    ):
         return False, "Missing timestamp, signature, or pubkey"
 
     now = time.time()
@@ -58,10 +66,12 @@ def verify_payload(payload):
 
     # 3. Signature Verification
     signature_hex = payload.pop("signature")
-    
+
     # We serialize the payload (without signature) with sorted keys to verify
-    payload_str = json.dumps(payload, separators=(',', ':'), sort_keys=True).encode('utf-8')
-    
+    payload_str = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode(
+        "utf-8"
+    )
+
     try:
         verify_key = VerifyKey(pubkey_hex, encoder=nacl.encoding.HexEncoder)
         signature_bytes = nacl.encoding.HexEncoder.decode(signature_hex)
@@ -70,7 +80,7 @@ def verify_payload(payload):
         return False, "Invalid signature"
     except Exception as e:
         return False, f"Signature validation error: {str(e)}"
-        
+
     # Re-insert signature for completeness if needed elsewhere
     payload["signature"] = signature_hex
     return True, ""
@@ -83,7 +93,14 @@ def register_relay():
     if not payload:
         return jsonify({"error": "No payload"}), 400
 
-    required_fields = ["ed25519_pubkey", "x25519_pubkey", "ip", "port", "timestamp", "signature"]
+    required_fields = [
+        "ed25519_pubkey",
+        "x25519_pubkey",
+        "ip",
+        "port",
+        "timestamp",
+        "signature",
+    ]
     if not all(k in payload for k in required_fields):
         return jsonify({"error": "Missing relay fields"}), 400
 
@@ -96,11 +113,14 @@ def register_relay():
         "x25519_pubkey": payload["x25519_pubkey"],
         "ip": payload["ip"],
         "port": payload["port"],
-        "last_seen": time.time()
+        "last_seen": time.time(),
     }
-    
-    logger.info(f"Registered Relay: {pubkey[:8]}... at {payload['ip']}:{payload['port']}")
+
+    logger.info(
+        f"Registered Relay: {pubkey[:8]}... at {payload['ip']}:{payload['port']}"
+    )
     return jsonify({"status": "ok"}), 200
+
 
 @app.route("/register_leaseset", methods=["POST"])
 def register_leaseset():
@@ -109,7 +129,14 @@ def register_leaseset():
     if not payload:
         return jsonify({"error": "No payload"}), 400
 
-    required_fields = ["ed25519_pubkey", "x25519_pubkey", "gateway_ip", "gateway_port", "timestamp", "signature"]
+    required_fields = [
+        "ed25519_pubkey",
+        "x25519_pubkey",
+        "gateway_ip",
+        "gateway_port",
+        "timestamp",
+        "signature",
+    ]
     if not all(k in payload for k in required_fields):
         return jsonify({"error": "Missing leaseset fields"}), 400
 
@@ -122,16 +149,20 @@ def register_leaseset():
         "x25519_pubkey": payload["x25519_pubkey"],
         "gateway_ip": payload["gateway_ip"],
         "gateway_port": payload["gateway_port"],
-        "last_seen": time.time()
+        "last_seen": time.time(),
     }
-    
-    logger.info(f"Registered LeaseSet: {pubkey[:8]}... via gateway {payload['gateway_ip']}:{payload['gateway_port']}")
+
+    logger.info(
+        f"Registered LeaseSet: {pubkey[:8]}... via gateway {payload['gateway_ip']}:{payload['gateway_port']}"
+    )
     return jsonify({"status": "ok"}), 200
+
 
 @app.route("/relays", methods=["GET"])
 def get_relays():
     purge_expired()
     return jsonify({"relays": relays}), 200
+
 
 @app.route("/leaseset/<pubkey>", methods=["GET"])
 def get_leaseset(pubkey):
@@ -139,6 +170,7 @@ def get_leaseset(pubkey):
     if pubkey in leasesets:
         return jsonify(leasesets[pubkey]), 200
     return jsonify({"error": "Not found"}), 404
+
 
 if __name__ == "__main__":
     logger.info("Starting Stateless Directory Server...")
