@@ -1,26 +1,27 @@
+import asyncio
+import json
+import logging
 import os
+import random
+import socket
 import sys
 import time
-import json
-import socket
-import random
-import asyncio
-import logging
-import requests
-import nacl.utils
+
 import nacl.encoding
+import nacl.utils
+import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from src.onion_crypto import (
+    E2E_BLOCK_SIZE,
+    FRAME_SIZE,
+    HEADER_SIZE,
+    NONCE_SIZE,
     KeyHierarchy,
-    trial_peel,
     build_last_mile_block,
     pack_header,
-    NONCE_SIZE,
-    HEADER_SIZE,
-    FRAME_SIZE,
-    E2E_BLOCK_SIZE,
+    trial_peel,
 )
 
 logging.basicConfig(
